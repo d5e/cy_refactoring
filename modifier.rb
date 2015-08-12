@@ -3,24 +3,15 @@ require 'csv'
 require 'date'
 
 def latest(name)
-  files = Dir["#{ ENV["HOME"] }/workspace/*#{name}*.txt"]
-
-  files.sort_by! do |file|
-    last_date = /\d+-\d+-\d+_[[:alpha:]]+\.txt$/.match file
-    last_date = last_date.to_s.match /\d+-\d+-\d+/
-
-    date = DateTime.parse(last_date.to_s)
-    date
-  end
-
-  throw RuntimeError if files.empty?
-
-  files.last
+	files = Dir["#{ ENV["HOME"] }/workspace/*#{name}*.txt"]
+	files.sort_by!{ |file| DateTime.parse file.scan(/\d+-\d+-\d+/).last }
+	throw RuntimeError if files.empty?
+	files.last
 end
 
 class String
 	def from_german_to_f
-		self.gsub(',', '.').to_f
+		self.gsub('.', '').gsub(',', '.').to_f
 	end
 end
 
@@ -108,7 +99,7 @@ class Modifier
 			hash[key] = hash[key].last
 		end
 		LAST_REAL_VALUE_WINS.each do |key|
-			hash[key] = hash[key].select {|v| not (v.nil? or v == 0 or v == '0' or v == '')}.last
+			hash[key] = hash[key].select {|v| v.from_german_to_f != 0 }.last
 		end
 		INT_VALUES.each do |key|
 			hash[key] = hash[key][0].to_s
